@@ -1,11 +1,12 @@
 package etl
 
 import (
+	"github.com/snormore/goetl/config"
 	"github.com/snormore/goetl/extract"
 	"github.com/snormore/goetl/load"
-	"github.com/snormore/goetl/logger"
 	"github.com/snormore/goetl/message"
 	"github.com/snormore/goetl/transform"
+	"launchpad.net/tomb"
 	"sync"
 )
 
@@ -15,24 +16,26 @@ func Init() {
 	InitEx(nil)
 }
 
-func InitEx(c EtlConfig) {
+func InitEx(c *EtlConfig) {
 	if c != nil {
-		Config = c
+		Config = *c
 	}
-	config.Register(Config)
+	config.Register("etl", Config)
 }
 
-func Start(extractor extract.Extractor, transformer transform.Transformer, loader load.Loader, t *tomb.Tomb) {
-	messages := make(chan message.Message)
+func Start(extractor extract.Extractor, transformer transform.Transformer, loader load.Loader, errs chan error, t *tomb.Tomb) {
+	messages := make(chan message.Message, Config.MessagesChannelSize)
 
+	extract.Init(extractor)
 	var extractorsWaits sync.WaitGroup
 	for i := 0; i < Config.NumberOfExtractors; i++ {
-		go extractor.Start(messages, &extractorsWaits, t)
+		go extract.Start(messages, errs, &extractorsWaits, t)
 	}
 
+	load.Init(loader)
 	var loaderWaits sync.WaitGroup
 	for i := 0; i < Config.NumberOfExtractors; i++ {
-		go loader.Start(messages, &loaderWaits, t)
+		go load.Start(messages, errs, &loaderWaits, t)
 	}
 
 	select {

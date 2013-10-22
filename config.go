@@ -1,12 +1,13 @@
 package etl
 
 type EtlConfig struct {
-	NumberOfExtractors int
-	NumberofLoaders    int
+	NumberOfExtractors  int
+	NumberOfLoaders     int
+	MessagesChannelSize int
 }
 
 var DefaultConfig = EtlConfig{
-	NumberOfExtractors: 10,
-	NumberOfLoaders:    10,
-	MessageChannelSize: 1024,
+	NumberOfExtractors:  10,
+	NumberOfLoaders:     10,
+	MessagesChannelSize: 1024,
 }
