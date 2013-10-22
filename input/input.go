@@ -11,21 +11,28 @@ type Inputter interface {
 	Transform(rawMessage interface{}) (message.Message, error)
 }
 
-var adapter Inputter
+var adapter *Inputter
 
-func Init(e Inputter) {
+func Init(e *Inputter) {
 	adapter = e
 }
 
 func Start(messages chan message.Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
-	defer wg.Done()
+	defer func() {
+		wg.Done()
+		select {
+		case <-t.Dead():
+		default:
+			t.Done()
+		}
+	}()
 
 	for {
 		select {
 		case <-t.Dying():
 			return t.Err()
-		case rawMsg := <-adapter.Listen():
-			msg, err := adapter.Transform(rawMsg)
+		case rawMsg := <-(*adapter).Listen():
+			msg, err := (*adapter).Transform(rawMsg)
 			if err == nil {
 				messages <- msg
 			} else {

@@ -10,9 +10,9 @@ type Outputter interface {
 	Push(msg message.Message) error
 }
 
-var adapter Outputter
+var adapter *Outputter
 
-func Init(l Outputter) {
+func Init(l *Outputter) {
 	adapter = l
 }
 
@@ -24,7 +24,7 @@ func Start(messages chan message.Message, errs chan error, wg *sync.WaitGroup, t
 		case <-t.Dying():
 			return t.Err()
 		case msg := <-messages:
-			err := adapter.Push(msg)
+			err := (*adapter).Push(msg)
 			if err != nil {
 				errs <- err
 			}

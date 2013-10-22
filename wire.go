@@ -22,17 +22,19 @@ func InitEx(c *WireConfig) {
 	config.Register("etl", Config)
 }
 
-func Start(in input.Inputter, out output.Outputter, errs chan error, t *tomb.Tomb) {
+func Start(in *input.Inputter, out *output.Outputter, errs chan error, t *tomb.Tomb) {
 	messages := make(chan message.Message, Config.MessagesChannelSize)
 
 	input.Init(in)
 	var inWaits sync.WaitGroup
+	inWaits.Add(Config.NumberOfInputters)
 	for i := 0; i < Config.NumberOfInputters; i++ {
 		go input.Start(messages, errs, &inWaits, t)
 	}
 
 	output.Init(out)
 	var outWaits sync.WaitGroup
+	outWaits.Add(Config.NumberOfOutputters)
 	for i := 0; i < Config.NumberOfInputters; i++ {
 		go output.Start(messages, errs, &outWaits, t)
 	}
