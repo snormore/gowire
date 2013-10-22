@@ -9,6 +9,8 @@ import (
 type Inputter interface {
 	Listen() chan interface{}
 	Transform(rawMessage interface{}) (message.Message, error)
+	FinalizeMessage(msg message.Message) error
+	Start(t *tomb.Tomb) error
 }
 
 var adapter *Inputter
@@ -17,7 +19,17 @@ func Init(e *Inputter) {
 	adapter = e
 }
 
-func Start(messages chan message.Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
+func Start(in *Inputter, numberOfListeners int, messages chan message.Message, errs chan error, t *tomb.Tomb) {
+	go (*in).Start(t)
+
+	var inWaits sync.WaitGroup
+	inWaits.Add(numberOfListeners)
+	for i := 0; i < numberOfListeners; i++ {
+		go Listen(messages, errs, &inWaits, t)
+	}
+}
+
+func Listen(messages chan message.Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
 	defer func() {
 		wg.Done()
 		select {

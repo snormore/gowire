@@ -16,7 +16,17 @@ func Init(l *Outputter) {
 	adapter = l
 }
 
-func Start(messages chan message.Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
+func Start(out *Outputter, numberOfListeners int, messages chan message.Message, errs chan error, t *tomb.Tomb) {
+	// go (*out).Start(t)
+
+	var outWaits sync.WaitGroup
+	outWaits.Add(numberOfListeners)
+	for i := 0; i < numberOfListeners; i++ {
+		go Listen(messages, errs, &outWaits, t)
+	}
+}
+
+func Listen(messages chan message.Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
 	defer wg.Done()
 
 	for {

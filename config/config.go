@@ -1,7 +1,11 @@
 package config
 
-type AbstractConfig map[string]interface{}
+type Config interface{}
 
-func Register(name string, c interface{}) error {
+func Register(name string, c Config) error {
 	return nil
+}
+
+type Configurable struct {
+	Config interface{}
 }
