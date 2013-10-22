@@ -5,7 +5,6 @@ import (
 	"github.com/snormore/goetl/extract"
 	"github.com/snormore/goetl/load"
 	"github.com/snormore/goetl/message"
-	"github.com/snormore/goetl/transform"
 	"launchpad.net/tomb"
 	"sync"
 )
@@ -23,7 +22,7 @@ func InitEx(c *EtlConfig) {
 	config.Register("etl", Config)
 }
 
-func Start(extractor extract.Extractor, transformer transform.Transformer, loader load.Loader, errs chan error, t *tomb.Tomb) {
+func Start(extractor extract.Extractor, loader load.Loader, errs chan error, t *tomb.Tomb) {
 	messages := make(chan message.Message, Config.MessagesChannelSize)
 
 	extract.Init(extractor)
@@ -41,5 +40,4 @@ func Start(extractor extract.Extractor, transformer transform.Transformer, loade
 	select {
 	case <-t.Dying():
 	}
-
 }

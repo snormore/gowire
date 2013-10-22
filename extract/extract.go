@@ -8,7 +8,7 @@ import (
 
 type Extractor interface {
 	Listen() chan interface{}
-	Transform(message interface{}) (message.Message, error)
+	Transform(rawMessage interface{}) (message.Message, error)
 }
 
 var adapter Extractor
