@@ -1,18 +1,18 @@
-package load
+package output
 
 import (
-	"github.com/snormore/goetl/message"
+	"github.com/snormore/gowire/message"
 	"launchpad.net/tomb"
 	"sync"
 )
 
-type Loader interface {
+type Outputter interface {
 	Push(msg message.Message) error
 }
 
-var adapter Loader
+var adapter Outputter
 
-func Init(l Loader) {
+func Init(l Outputter) {
 	adapter = l
 }
 

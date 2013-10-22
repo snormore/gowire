@@ -1,13 +1,13 @@
-package etl
+package wire
 
-type EtlConfig struct {
-	NumberOfExtractors  int
-	NumberOfLoaders     int
+type WireConfig struct {
+	NumberOfInputters   int
+	NumberOfOutputters  int
 	MessagesChannelSize int
 }
 
-var DefaultConfig = EtlConfig{
-	NumberOfExtractors:  10,
-	NumberOfLoaders:     10,
+var DefaultConfig = WireConfig{
+	NumberOfInputters:   10,
+	NumberOfOutputters:  10,
 	MessagesChannelSize: 1024,
 }

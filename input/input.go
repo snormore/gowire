@@ -1,19 +1,19 @@
-package extract
+package input
 
 import (
-	"github.com/snormore/goetl/message"
+	"github.com/snormore/gowire/message"
 	"launchpad.net/tomb"
 	"sync"
 )
 
-type Extractor interface {
+type Inputter interface {
 	Listen() chan interface{}
 	Transform(rawMessage interface{}) (message.Message, error)
 }
 
-var adapter Extractor
+var adapter Inputter
 
-func Init(e Extractor) {
+func Init(e Inputter) {
 	adapter = e
 }
 
