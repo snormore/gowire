@@ -14,8 +14,7 @@ import (
 )
 
 const (
-	LatestFinalizedFilePath = "./tmp/local.message"
-	EmptyEventId            = "-"
+	EmptyEventId = "-"
 )
 
 type TailInputter struct {
@@ -30,25 +29,36 @@ type TailConfig struct {
 	FilePath                string
 	StartEvent              string
 	LatestFinalizedFlushMod int
+	LatestFinalizedFilePath string
 }
 
 var DefaultTailConfig = TailConfig{
 	FilePath:                "logs/development.json.log",
 	StartEvent:              "",
 	LatestFinalizedFlushMod: 100,
+	LatestFinalizedFilePath: "./tmp/local.message",
 }
 
-// func createTailConfig(c TailConfig) TailConfig {
-// 	// merge given config and defaults
-// }
+func createTailConfig(c TailConfig) TailConfig {
+	if c.FilePath == "" {
+		c.FilePath = DefaultTailConfig.FilePath
+	}
+	if c.LatestFinalizedFlushMod == 0 {
+		c.LatestFinalizedFlushMod = DefaultTailConfig.LatestFinalizedFlushMod
+	}
+	if c.LatestFinalizedFilePath == "" {
+		c.LatestFinalizedFilePath = DefaultTailConfig.LatestFinalizedFilePath
+	}
+	return c
+}
 
 type Event struct {
 	Id string `json:"event_id"`
 }
 
-func NewTailInputter(conf interface{}) *TailInputter {
+func NewTailInputter(conf TailConfig) *TailInputter {
 	in := TailInputter{}
-	in.Config = conf.(config.Config)
+	in.Config = config.Config(createTailConfig(conf))
 	in.tailer = tail.NewTailer()
 	in.lines = make(chan interface{}, tail.LinesChannelSize)
 	go func() {
@@ -81,11 +91,11 @@ func (in TailInputter) FinalizeMessage(msg message.Message) error {
 }
 
 func (in *TailInputter) getLatestFinalizedMessageId() (string, error) {
-	if _, err := os.Stat(LatestFinalizedFilePath); os.IsNotExist(err) {
-		logger.Info("No such file or directory: %s", LatestFinalizedFilePath)
+	if _, err := os.Stat(in.Config.(TailConfig).LatestFinalizedFilePath); os.IsNotExist(err) {
+		logger.Info("No such file or directory: %s", in.Config.(TailConfig).LatestFinalizedFilePath)
 		return "", nil
 	}
-	eventBytes, err := ioutil.ReadFile(LatestFinalizedFilePath)
+	eventBytes, err := ioutil.ReadFile(in.Config.(TailConfig).LatestFinalizedFilePath)
 	if err != nil {
 		logger.Panic("Failed to open latest finalized message file: %+v", err)
 	}
@@ -98,7 +108,7 @@ func (in *TailInputter) getLatestFinalizedMessageId() (string, error) {
 }
 
 func (in *TailInputter) setLatestFinalizedMessageId(msgId string) error {
-	return ioutil.WriteFile(LatestFinalizedFilePath, []byte(msgId), 0644)
+	return ioutil.WriteFile(in.Config.(TailConfig).LatestFinalizedFilePath, []byte(msgId), 0644)
 }
 
 func (in *TailInputter) finalizeListener(t *tomb.Tomb) {

@@ -196,3 +196,36 @@ func TestStartWithTailerStartLastEventAndMockOutput(t *testing.T) {
 	startTomb.Killf("TestStartWithTailerStartLastEventAndMockOutput: ending...")
 	startTomb.Wait()
 }
+
+func TestStartWithMockInputAndSkyOutput(t *testing.T) {
+	inFile, err := createAndPushToTempFile(sampleEventLog())
+	assert.NoError(t, err)
+	inConfig := input_adapter.TailConfig{
+		FilePath:   inFile.Name(),
+		StartEvent: "111",
+	}
+	in := input_adapter.NewTailInputter(inConfig)
+
+	outMessages := make(chan message.Message, 1024)
+	out := FakeOutputter{outMessages}
+
+	errs := consumeAndCheckErrors(t)
+
+	var startTomb tomb.Tomb
+	inputter := input.Inputter(in)
+	outputter := output.Outputter(out)
+	go Start(&inputter, &outputter, errs, &startTomb)
+
+	i := 0
+	for msg := range out.Messages {
+		logger.Debug("Output: %+v", msg)
+		assert.Equal(t, fmt.Sprintf("11%d", i+2), msg.Id)
+		i++
+		if i == len(strings.Split(sampleEventLog(), "\n"))-2 {
+			startTomb.Killf("TestStartWithTailerAndMockOutput: ending...")
+			break
+		}
+	}
+	assert.Equal(t, FakeInputterMessageCount-2, i)
+	startTomb.Wait()
+}
