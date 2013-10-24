@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/snormore/gologger"
 	"github.com/snormore/gotail"
+	"github.com/snormore/gowire-adapters/tail"
 	"github.com/snormore/gowire/input"
-	"github.com/snormore/gowire/input/adapters"
 	"github.com/snormore/gowire/message"
 	"github.com/snormore/gowire/output"
 	"github.com/stretchr/testify/assert"
@@ -136,11 +136,11 @@ func createAndPushToTempFile(log string) (*os.File, error) {
 func TestStartWithTailerAndMockOutput(t *testing.T) {
 	inFile, err := createAndPushToTempFile(sampleEventLog())
 	assert.NoError(t, err)
-	inConfig := input_adapter.TailConfig{
+	inConfig := tail_adapter.TailConfig{
 		FilePath:   inFile.Name(),
 		StartEvent: "111",
 	}
-	in := input_adapter.NewTailInputter(inConfig)
+	in := tail_adapter.NewTailInputter(inConfig)
 
 	outMessages := make(chan message.Message, 1024)
 	out := FakeOutputter{outMessages}
@@ -169,11 +169,11 @@ func TestStartWithTailerAndMockOutput(t *testing.T) {
 func TestStartWithTailerStartLastEventAndMockOutput(t *testing.T) {
 	inFile, err := createAndPushToTempFile(sampleEventLog())
 	assert.NoError(t, err)
-	inConfig := input_adapter.TailConfig{
+	inConfig := tail_adapter.TailConfig{
 		FilePath:   inFile.Name(),
 		StartEvent: "119",
 	}
-	in := input_adapter.NewTailInputter(inConfig)
+	in := tail_adapter.NewTailInputter(inConfig)
 
 	outMessages := make(chan message.Message, 1024)
 	out := FakeOutputter{outMessages}
@@ -200,11 +200,11 @@ func TestStartWithTailerStartLastEventAndMockOutput(t *testing.T) {
 func TestStartWithMockInputAndSkyOutput(t *testing.T) {
 	inFile, err := createAndPushToTempFile(sampleEventLog())
 	assert.NoError(t, err)
-	inConfig := input_adapter.TailConfig{
+	inConfig := tail_adapter.TailConfig{
 		FilePath:   inFile.Name(),
 		StartEvent: "111",
 	}
-	in := input_adapter.NewTailInputter(inConfig)
+	in := tail_adapter.NewTailInputter(inConfig)
 
 	outMessages := make(chan message.Message, 1024)
 	out := FakeOutputter{outMessages}
