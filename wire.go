@@ -1,7 +1,7 @@
 package wire
 
 import (
-	"github.com/snormore/gowire/config"
+	"github.com/snormore/goconfig"
 	"github.com/snormore/gowire/input"
 	"github.com/snormore/gowire/message"
 	"github.com/snormore/gowire/output"

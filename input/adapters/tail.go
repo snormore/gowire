@@ -2,9 +2,9 @@ package input_adapter
 
 import (
 	"encoding/json"
+	"github.com/snormore/goconfig"
 	"github.com/snormore/gologger"
 	"github.com/snormore/gotail"
-	"github.com/snormore/gowire/config"
 	"github.com/snormore/gowire/message"
 	"io/ioutil"
 	"launchpad.net/tomb"
