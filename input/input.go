@@ -20,7 +20,12 @@ func Init(e *Inputter) {
 }
 
 func Start(in *Inputter, numberOfListeners int, messages chan message.Message, errs chan error, t *tomb.Tomb) {
-	go (*in).Start(t)
+	go func() {
+		err := (*in).Start(t)
+		if err != nil {
+			errs <- err
+		}
+	}()
 
 	var inWaits sync.WaitGroup
 	inWaits.Add(numberOfListeners)

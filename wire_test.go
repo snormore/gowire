@@ -3,7 +3,6 @@ package wire
 import (
 	"fmt"
 	"github.com/snormore/gologger"
-	"github.com/snormore/gotail"
 	"github.com/snormore/gowire-adapters/tail"
 	"github.com/snormore/gowire/input"
 	"github.com/snormore/gowire/message"
@@ -36,7 +35,6 @@ const (
 
 func init() {
 	logger.Verbosity = 2
-	tail.ScriptPath = "../gotail/sbin"
 }
 
 type FakeInputter struct {
