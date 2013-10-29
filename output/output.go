@@ -7,6 +7,7 @@ import (
 )
 
 type Outputter interface {
+	Start(t *tomb.Tomb) error
 	Push(msg message.Message) error
 }
 
@@ -17,7 +18,12 @@ func Init(l *Outputter) {
 }
 
 func Start(out *Outputter, numberOfListeners int, messages chan message.Message, errs chan error, t *tomb.Tomb) {
-	// go (*out).Start(t)
+	go func() {
+		err := (*out).Start(t)
+		if err != nil {
+			errs <- err
+		}
+	}()
 
 	var outWaits sync.WaitGroup
 	outWaits.Add(numberOfListeners)
