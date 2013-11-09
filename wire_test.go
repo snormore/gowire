@@ -68,6 +68,10 @@ type FakeOutputter struct {
 	Messages chan message.Message
 }
 
+func (out FakeOutputter) Start(t *tomb.Tomb) error {
+	return nil
+}
+
 func (out FakeOutputter) Push(msg message.Message) error {
 	out.Messages <- msg
 	return nil

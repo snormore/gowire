@@ -22,7 +22,7 @@ func InitEx(c *WireConfig) {
 }
 
 func Start(in *input.Inputter, out *output.Outputter, errs chan error, t *tomb.Tomb) {
-	messages := make(chan message.Message, Config.MessagesChannelSize)
+	messages := make(chan message.Message, Config.BufferSize)
 
 	input.Init(in)
 	go input.Start(in, Config.NumberOfInputters, messages, errs, t)
