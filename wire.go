@@ -27,7 +27,7 @@ func Start(in *input.Inputter, out *output.Outputter, errs chan error, t *tomb.T
 	input.Init(in)
 	go input.Start(in, Config.NumberOfInputters, messages, errs, t)
 
-	output.Init(out)
+	output.Init(out, in)
 	go output.Start(out, Config.NumberOfOutputters, messages, errs, t)
 
 	<-t.Dying()
