@@ -1,19 +1,13 @@
 package wire
 
 import (
-	"fmt"
-	"github.com/snormore/gologger"
-	"github.com/snormore/gowire-adapters/tail"
 	"github.com/snormore/gowire/input"
 	"github.com/snormore/gowire/message"
 	"github.com/snormore/gowire/output"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
 	"launchpad.net/tomb"
-	"os"
 	"strings"
 	"testing"
-	"time"
 )
 
 const (
@@ -33,12 +27,19 @@ const (
 	`
 )
 
-func init() {
-	logger.Verbosity = 2
-}
-
 func sampleEventLog() string {
 	return strings.Trim(SampleEventLog, " \n\r\t")
+}
+
+func sampleEventLogEntries() []string {
+	sampleEntries := strings.Split(sampleEventLog(), "\n")
+	entries := make([]string, 0, len(sampleEntries))
+	for _, entry := range sampleEntries {
+		if strings.Trim(entry, " \n\r\t") != "" {
+			entries = append(entries, entry)
+		}
+	}
+	return entries
 }
 
 func consumeAndCheckErrors(t *testing.T) chan error {
@@ -52,10 +53,12 @@ func consumeAndCheckErrors(t *testing.T) chan error {
 }
 
 func TestStartWithMocks(t *testing.T) {
-	in := FakeInputter{}
-	in.Messages = make(chan interface{}, 1024)
+	in := NewFakeInputter()
 	var inTomb tomb.Tomb
 	go in.Start(&inTomb)
+
+	sampleLogEntries := sampleEventLogEntries()
+	go in.PushAll(sampleLogEntries)
 
 	outMessages := make(chan message.Message, 1024)
 	out := FakeOutputter{outMessages}
@@ -68,126 +71,13 @@ func TestStartWithMocks(t *testing.T) {
 	go Start(&inputter, &outputter, errs, &startTomb)
 
 	i := 0
-	for msg := range out.Messages {
+	for _ = range out.Messages {
 		i++
-		logger.Debug("Output: %+v", msg)
 		if i == FakeInputterMessageCount {
 			startTomb.Killf("TestStartWithMocks: ending...")
 			break
 		}
 	}
 	assert.Equal(t, FakeInputterMessageCount, i)
-	startTomb.Wait()
-}
-
-func createAndPushToTempFile(log string) (*os.File, error) {
-	file, err := ioutil.TempFile("./tmp/", "tailer-test")
-	if err != nil {
-		return file, err
-	}
-	lines := strings.Split(strings.Trim(log, " \n\r\t"), "\n")
-	go func() {
-		for _, line := range lines {
-			file.WriteString(fmt.Sprintf("%s\n", strings.Trim(line, " \t\n\r")))
-			time.Sleep(100 * time.Nanosecond)
-		}
-	}()
-	return file, err
-}
-
-func TestStartWithTailerAndMockOutput(t *testing.T) {
-	inFile, err := createAndPushToTempFile(sampleEventLog())
-	assert.NoError(t, err)
-	inConfig := tail_adapter.TailConfig{
-		FilePath:   inFile.Name(),
-		StartEvent: "111",
-	}
-	in := tail_adapter.NewTailInputter(inConfig)
-
-	outMessages := make(chan message.Message, 1024)
-	out := FakeOutputter{outMessages}
-
-	errs := consumeAndCheckErrors(t)
-
-	var startTomb tomb.Tomb
-	inputter := input.Inputter(in)
-	outputter := output.Outputter(out)
-	go Start(&inputter, &outputter, errs, &startTomb)
-
-	i := 0
-	for msg := range out.Messages {
-		logger.Debug("Output: %+v", msg)
-		assert.Equal(t, fmt.Sprintf("11%d", i+2), msg.Id)
-		i++
-		if i == len(strings.Split(sampleEventLog(), "\n"))-2 {
-			startTomb.Killf("TestStartWithTailerAndMockOutput: ending...")
-			break
-		}
-	}
-	assert.Equal(t, FakeInputterMessageCount-2, i)
-	startTomb.Wait()
-}
-
-func TestStartWithTailerStartLastEventAndMockOutput(t *testing.T) {
-	inFile, err := createAndPushToTempFile(sampleEventLog())
-	assert.NoError(t, err)
-	inConfig := tail_adapter.TailConfig{
-		FilePath:   inFile.Name(),
-		StartEvent: "119",
-	}
-	in := tail_adapter.NewTailInputter(inConfig)
-
-	outMessages := make(chan message.Message, 1024)
-	out := FakeOutputter{outMessages}
-
-	errs := consumeAndCheckErrors(t)
-
-	var startTomb tomb.Tomb
-	inputter := input.Inputter(in)
-	outputter := output.Outputter(out)
-	go Start(&inputter, &outputter, errs, &startTomb)
-
-	time.Sleep(50 * time.Millisecond)
-	anyMessage := false
-	select {
-	case <-out.Messages:
-		anyMessage = true
-	default:
-	}
-	assert.False(t, anyMessage, "Messages were found on channel where it should be empty.")
-	startTomb.Killf("TestStartWithTailerStartLastEventAndMockOutput: ending...")
-	startTomb.Wait()
-}
-
-func TestStartWithMockInputAndSkyOutput(t *testing.T) {
-	inFile, err := createAndPushToTempFile(sampleEventLog())
-	assert.NoError(t, err)
-	inConfig := tail_adapter.TailConfig{
-		FilePath:   inFile.Name(),
-		StartEvent: "111",
-	}
-	in := tail_adapter.NewTailInputter(inConfig)
-
-	outMessages := make(chan message.Message, 1024)
-	out := FakeOutputter{outMessages}
-
-	errs := consumeAndCheckErrors(t)
-
-	var startTomb tomb.Tomb
-	inputter := input.Inputter(in)
-	outputter := output.Outputter(out)
-	go Start(&inputter, &outputter, errs, &startTomb)
-
-	i := 0
-	for msg := range out.Messages {
-		logger.Debug("Output: %+v", msg)
-		assert.Equal(t, fmt.Sprintf("11%d", i+2), msg.Id)
-		i++
-		if i == len(strings.Split(sampleEventLog(), "\n"))-2 {
-			startTomb.Killf("TestStartWithTailerAndMockOutput: ending...")
-			break
-		}
-	}
-	assert.Equal(t, FakeInputterMessageCount-2, i)
 	startTomb.Wait()
 }
