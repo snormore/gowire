@@ -1,15 +1,14 @@
-package input
+package wire
 
 import (
-	"github.com/snormore/gowire/message"
 	"launchpad.net/tomb"
 	"sync"
 )
 
 type Inputter interface {
 	Listen() chan interface{}
-	Transform(rawMessage interface{}) (message.Message, error)
-	FinalizeMessage(msg message.Message) error
+	Transform(rawMessage interface{}) (Message, error)
+	FinalizeMessage(msg Message) error
 	Start(t *tomb.Tomb) error
 }
 
@@ -19,7 +18,7 @@ func Init(e *Inputter) {
 	adapter = e
 }
 
-func Start(in *Inputter, numberOfListeners int, messages chan message.Message, errs chan error, t *tomb.Tomb) {
+func Start(in *Inputter, numberOfListeners int, messages chan Message, errs chan error, t *tomb.Tomb) {
 	go func() {
 		err := (*in).Start(t)
 		if err != nil {
@@ -34,7 +33,7 @@ func Start(in *Inputter, numberOfListeners int, messages chan message.Message, e
 	}
 }
 
-func Listen(messages chan message.Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
+func Listen(messages chan Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
 	defer func() {
 		wg.Done()
 		select {

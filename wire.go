@@ -2,9 +2,6 @@ package wire
 
 import (
 	"github.com/snormore/goconfig"
-	"github.com/snormore/gowire/input"
-	"github.com/snormore/gowire/message"
-	"github.com/snormore/gowire/output"
 	"launchpad.net/tomb"
 )
 
@@ -21,14 +18,14 @@ func InitEx(c *WireConfig) {
 	config.Register("wire", Config)
 }
 
-func Start(in *input.Inputter, out *output.Outputter, errs chan error, t *tomb.Tomb) {
-	messages := make(chan message.Message, Config.BufferSize)
+func Start(in *Inputter, out *Outputter, errs chan error, t *tomb.Tomb) {
+	messages := make(chan Message, Config.BufferSize)
 
-	input.Init(in)
-	go input.Start(in, Config.NumberOfInputters, messages, errs, t)
+	Init(in)
+	go Start(in, Config.NumberOfInputters, messages, errs, t)
 
-	output.Init(out, in)
-	go output.Start(out, Config.NumberOfOutputters, messages, errs, t)
+	Init(out, in)
+	go Start(out, Config.NumberOfOutputters, messages, errs, t)
 
 	<-t.Dying()
 }

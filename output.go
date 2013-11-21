@@ -1,28 +1,26 @@
-package output
+package wire
 
 import (
-	"github.com/snormore/gowire/input"
-	"github.com/snormore/gowire/message"
 	"launchpad.net/tomb"
 	"sync"
 )
 
 type Outputter interface {
 	Start(t *tomb.Tomb) error
-	Push(msg message.Message) error
+	Push(msg Message) error
 }
 
 var (
 	adapter  *Outputter
-	inputter *input.Inputter
+	inputter *Inputter
 )
 
-func Init(out *Outputter, in *input.Inputter) {
+func Init(out *Outputter, in *Inputter) {
 	adapter = out
 	inputter = in
 }
 
-func Start(out *Outputter, numberOfListeners int, messages chan message.Message, errs chan error, t *tomb.Tomb) {
+func Start(out *Outputter, numberOfListeners int, messages chan Message, errs chan error, t *tomb.Tomb) {
 	go func() {
 		err := (*out).Start(t)
 		if err != nil {
@@ -37,7 +35,7 @@ func Start(out *Outputter, numberOfListeners int, messages chan message.Message,
 	}
 }
 
-func Listen(messages chan message.Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
+func Listen(messages chan Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
 	defer wg.Done()
 
 	for {
