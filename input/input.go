@@ -11,6 +11,7 @@ type Inputter interface {
 	Transform(rawMessage interface{}) (message.Message, error)
 	FinalizeMessage(msg message.Message) error
 	Start(t *tomb.Tomb) error
+	Close() error
 }
 
 var adapter *Inputter

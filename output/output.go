@@ -10,6 +10,7 @@ import (
 type Outputter interface {
 	Start(t *tomb.Tomb) error
 	Push(msg message.Message) error
+	Close() error
 }
 
 var (
