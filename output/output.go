@@ -14,18 +14,18 @@ type Outputter interface {
 }
 
 var (
-	adapter  *Outputter
-	inputter *input.Inputter
+	adapter  Outputter
+	inputter input.Inputter
 )
 
-func Init(out *Outputter, in *input.Inputter) {
+func Init(out Outputter, in input.Inputter) {
 	adapter = out
 	inputter = in
 }
 
-func Start(out *Outputter, numberOfListeners int, messages chan message.Message, errs chan error, t *tomb.Tomb) {
+func Start(out Outputter, numberOfListeners int, messages chan message.Message, errs chan error, t *tomb.Tomb) {
 	go func() {
-		err := (*out).Start(t)
+		err := out.Start(t)
 		if err != nil {
 			errs <- err
 		}
@@ -46,11 +46,11 @@ func Listen(messages chan message.Message, errs chan error, wg *sync.WaitGroup, 
 		case <-t.Dying():
 			return t.Err()
 		case msg := <-messages:
-			err := (*adapter).Push(msg)
+			err := adapter.Push(msg)
 			if err != nil {
 				errs <- err
 			} else {
-				(*inputter).FinalizeMessage(msg)
+				inputter.FinalizeMessage(msg)
 			}
 		}
 	}

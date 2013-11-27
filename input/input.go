@@ -14,15 +14,15 @@ type Inputter interface {
 	Close() error
 }
 
-var adapter *Inputter
+var adapter Inputter
 
-func Init(e *Inputter) {
+func Init(e Inputter) {
 	adapter = e
 }
 
-func Start(in *Inputter, numberOfListeners int, messages chan message.Message, errs chan error, t *tomb.Tomb) {
+func Start(in Inputter, numberOfListeners int, messages chan message.Message, errs chan error, t *tomb.Tomb) {
 	go func() {
-		err := (*in).Start(t)
+		err := in.Start(t)
 		if err != nil {
 			errs <- err
 		}
@@ -49,8 +49,8 @@ func Listen(messages chan message.Message, errs chan error, wg *sync.WaitGroup, 
 		select {
 		case <-t.Dying():
 			return t.Err()
-		case rawMsg := <-(*adapter).Listen():
-			msg, err := (*adapter).Transform(rawMsg)
+		case rawMsg := <-adapter.Listen():
+			msg, err := adapter.Transform(rawMsg)
 			if err == nil {
 				messages <- msg
 			} else {

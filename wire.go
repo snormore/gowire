@@ -21,7 +21,7 @@ func InitEx(c *WireConfig) {
 	config.Register("wire", Config)
 }
 
-func Start(in *input.Inputter, out *output.Outputter, errs chan error, t *tomb.Tomb) {
+func Start(in input.Inputter, out output.Outputter, errs chan error, t *tomb.Tomb) {
 	messages := make(chan message.Message, Config.BufferSize)
 
 	input.Init(in)
