@@ -8,8 +8,8 @@ import (
 )
 
 type Outputter interface {
-	Start(t *tomb.Tomb) error
-	Push(msg message.Message) error
+	Start() error
+	Push(msg Message) error
 	Close() error
 }
 
@@ -23,7 +23,7 @@ func Init(out Outputter, in input.Inputter) {
 	inputter = in
 }
 
-func Start(out Outputter, numberOfListeners int, messages chan message.Message, errs chan error, t *tomb.Tomb) {
+func Start(out Outputter, numberOfListeners int, messages chan Message, t *tomb.Tomb) error {
 	go func() {
 		err := out.Start(t)
 		if err != nil {
@@ -38,7 +38,7 @@ func Start(out Outputter, numberOfListeners int, messages chan message.Message, 
 	}
 }
 
-func Listen(messages chan message.Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
+func Listen(messages chan Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
 	defer wg.Done()
 
 	for {

@@ -1,7 +1,6 @@
-package input
+package wire
 
 import (
-	"github.com/snormore/gowire/message"
 	"launchpad.net/tomb"
 	"sync"
 )
@@ -14,15 +13,25 @@ type Inputter interface {
 	Close() error
 }
 
-var adapter Inputter
-
-func Init(e Inputter) {
-	adapter = e
+type input struct {
+	in Inputter
 }
 
-func Start(in Inputter, numberOfListeners int, messages chan Message) error {
+var adapter Inputter
+
+func newInput(in Inputter) *input {
+	i := input{in}
+	return &i
+}
+
+func (i *input) start(numberOfListeners int, messages chan Message, errs chan error, t *tomb.Tomb) error {
+
+	err := i.in.Start(t)
+	if err != nil {
+		return err
+	}
+
 	go func() {
-		err := in.Start(t)
 		if err != nil {
 			errs <- err
 		}
@@ -30,12 +39,14 @@ func Start(in Inputter, numberOfListeners int, messages chan Message) error {
 
 	var inWaits sync.WaitGroup
 	inWaits.Add(numberOfListeners)
-	for i := 0; i < numberOfListeners; i++ {
-		go Listen(messages, errs, &inWaits, t)
+	for j := 0; j < numberOfListeners; j++ {
+		go i.listen(messages, errs, &inWaits, t)
 	}
+
+	return nil
 }
 
-func Listen(messages chan Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
+func (i *input) listen(messages chan Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
 	defer func() {
 		wg.Done()
 		select {
@@ -49,8 +60,8 @@ func Listen(messages chan Message, errs chan error, wg *sync.WaitGroup, t *tomb.
 		select {
 		case <-t.Dying():
 			return t.Err()
-		case rawMsg := <-adapter.Listen():
-			msg, err := adapter.Transform(rawMsg)
+		case rawMsg := <-i.in.Listen():
+			msg, err := i.in.Transform(rawMsg)
 			if err == nil {
 				messages <- msg
 			} else {

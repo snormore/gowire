@@ -1,7 +1,6 @@
 package wire
 
 import (
-	"github.com/snormore/gowire/message"
 	"launchpad.net/tomb"
 )
 
@@ -22,8 +21,8 @@ func (in *FakeInputter) PushAll(messages []string) error {
 	return nil
 }
 
-func (in *FakeInputter) Transform(rawMessage interface{}) (message.Message, error) {
-	msg := message.Message{"undefined", rawMessage}
+func (in *FakeInputter) Transform(rawMessage interface{}) (Message, error) {
+	msg := Message{"undefined", rawMessage}
 	return msg, nil
 }
 
@@ -35,7 +34,7 @@ func (in *FakeInputter) Start(t *tomb.Tomb) error {
 	return nil
 }
 
-func (in *FakeInputter) FinalizeMessage(msg message.Message) error {
+func (in *FakeInputter) FinalizeMessage(msg Message) error {
 	return nil
 }
 
@@ -44,14 +43,14 @@ func (in *FakeInputter) Close() error {
 }
 
 type FakeOutputter struct {
-	Messages chan message.Message
+	Messages chan Message
 }
 
 func (out *FakeOutputter) Start(t *tomb.Tomb) error {
 	return nil
 }
 
-func (out *FakeOutputter) Push(msg message.Message) error {
+func (out *FakeOutputter) Push(msg Message) error {
 	out.Messages <- msg
 	return nil
 }

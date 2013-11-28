@@ -1,4 +1,4 @@
-package message
+package wire
 
 type Message struct {
 	Id   string

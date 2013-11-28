@@ -1,7 +1,6 @@
 package wire
 
 import (
-	"github.com/snormore/gowire/message"
 	"github.com/stretchr/testify/assert"
 	"launchpad.net/tomb"
 	"strings"
@@ -52,19 +51,18 @@ func consumeAndCheckErrors(t *testing.T) chan error {
 
 func TestStartWithMocks(t *testing.T) {
 	in := NewFakeInputter()
-	var inTomb tomb.Tomb
-	go in.Start(&inTomb)
-
 	sampleLogEntries := sampleEventLogEntries()
-	go in.PushAll(sampleLogEntries)
 
-	outMessages := make(chan message.Message, 1024)
+	outMessages := make(chan Message, 1024)
 	out := &FakeOutputter{outMessages}
 
 	errs := consumeAndCheckErrors(t)
 
 	var startTomb tomb.Tomb
-	go Start(in, out, errs, &startTomb)
+	w := New(nil)
+	w.Start(in, out, errs, &startTomb)
+
+	go in.PushAll(sampleLogEntries)
 
 	i := 0
 	for _ = range out.Messages {

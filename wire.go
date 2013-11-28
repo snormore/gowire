@@ -1,34 +1,38 @@
 package wire
 
 import (
-	"github.com/snormore/goconfig"
-	"github.com/snormore/gowire/input"
-	"github.com/snormore/gowire/message"
-	"github.com/snormore/gowire/output"
 	"launchpad.net/tomb"
 )
 
-var Config = DefaultConfig
+type Wire struct {
+	in  Inputter
+	out Outputter
 
-func Init() {
-	InitEx(nil)
+	Config *WireConfig
 }
 
-func InitEx(c *WireConfig) {
-	if c != nil {
-		Config = *c
+func New(config *WireConfig) *Wire {
+	w := new(Wire)
+	if config == nil {
+		w.Config = &DefaultConfig
+	} else {
+		w.Config = config
 	}
-	config.Register("wire", Config)
+	return w
 }
 
-func Start(in input.Inputter, out output.Outputter, errs chan error, t *tomb.Tomb) {
-	messages := make(chan message.Message, Config.BufferSize)
+func (w *Wire) Start(in Inputter, out Outputter, errs chan error, t *tomb.Tomb) error {
+	messages := make(chan Message, w.Config.BufferSize)
 
-	input.Init(in)
-	go input.Start(in, Config.NumberOfInputters, messages, errs, t)
+	i := newInput(in)
+	if err := i.start(w.Config.NumberOfInputters, messages, errs, t); err != nil {
+		return err
+	}
 
-	output.Init(out, in)
-	go output.Start(out, Config.NumberOfOutputters, messages, errs, t)
+	o := newOutput(out, in)
+	if err := o.start(w.Config.NumberOfOutputters, messages, errs, t); err != nil {
+		return err
+	}
 
-	<-t.Dying()
+	return nil
 }
