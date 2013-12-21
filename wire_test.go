@@ -2,7 +2,6 @@ package wire
 
 import (
 	"github.com/stretchr/testify/assert"
-	"launchpad.net/tomb"
 	"strings"
 	"testing"
 )
@@ -56,11 +55,8 @@ func TestStartWithMocks(t *testing.T) {
 	outMessages := make(chan Message, 1024)
 	out := &FakeOutputter{outMessages}
 
-	errs := consumeAndCheckErrors(t)
-
-	var startTomb tomb.Tomb
 	w := New(nil)
-	w.Start(in, out, errs, &startTomb)
+	assert.NoError(t, w.Start(in, out, consumeAndCheckErrors(t)))
 
 	go in.PushAll(sampleLogEntries)
 
@@ -68,10 +64,10 @@ func TestStartWithMocks(t *testing.T) {
 	for _ = range out.Messages {
 		i++
 		if i == FakeInputterMessageCount {
-			startTomb.Killf("TestStartWithMocks: ending...")
 			break
 		}
 	}
 	assert.Equal(t, FakeInputterMessageCount, i)
-	startTomb.Wait()
+
+	assert.NoError(t, w.Close())
 }

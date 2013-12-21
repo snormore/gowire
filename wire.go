@@ -1,12 +1,8 @@
 package wire
 
-import (
-	"launchpad.net/tomb"
-)
-
 type Wire struct {
-	in  Inputter
-	out Outputter
+	in  *input
+	out *output
 
 	Config *WireConfig
 }
@@ -21,18 +17,25 @@ func New(config *WireConfig) *Wire {
 	return w
 }
 
-func (w *Wire) Start(in Inputter, out Outputter, errs chan error, t *tomb.Tomb) error {
+func (w *Wire) Start(in Inputter, out Outputter, errs chan error) error {
 	messages := make(chan Message, w.Config.BufferSize)
 
-	i := newInput(in)
-	if err := i.start(w.Config.NumberOfInputters, messages, errs, t); err != nil {
+	w.in = newInput(in)
+	if err := w.in.start(w.Config.NumberOfInputters, messages, errs); err != nil {
 		return err
 	}
 
-	o := newOutput(out, in)
-	if err := o.start(w.Config.NumberOfOutputters, messages, errs, t); err != nil {
+	w.out = newOutput(out, in)
+	if err := w.out.start(w.Config.NumberOfOutputters, messages, errs); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func (w *Wire) Close() error {
+	if err := w.in.close(); err != nil {
+		return err
+	}
+	return w.out.close()
 }

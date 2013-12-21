@@ -14,16 +14,17 @@ type Outputter interface {
 type output struct {
 	out Outputter
 	in  Inputter
+	t   *tomb.Tomb
 }
 
 func newOutput(out Outputter, in Inputter) *output {
-	o := output{out, in}
+	o := output{out, in, new(tomb.Tomb)}
 	return &o
 }
 
-func (o *output) start(numberOfListeners int, messages chan Message, errs chan error, t *tomb.Tomb) error {
+func (o *output) start(numberOfListeners int, messages chan Message, errs chan error) error {
 
-	err := o.out.Start(t)
+	err := o.out.Start(o.t)
 	if err != nil {
 		return err
 	}
@@ -37,19 +38,19 @@ func (o *output) start(numberOfListeners int, messages chan Message, errs chan e
 	var outWaits sync.WaitGroup
 	outWaits.Add(numberOfListeners)
 	for i := 0; i < numberOfListeners; i++ {
-		go o.listen(messages, errs, &outWaits, t)
+		go o.listen(messages, errs, &outWaits)
 	}
 
 	return nil
 }
 
-func (o *output) listen(messages chan Message, errs chan error, wg *sync.WaitGroup, t *tomb.Tomb) error {
+func (o *output) listen(messages chan Message, errs chan error, wg *sync.WaitGroup) error {
 	defer wg.Done()
 
 	for {
 		select {
-		case <-t.Dying():
-			return t.Err()
+		case <-o.t.Dying():
+			return o.t.Err()
 		case msg := <-messages:
 			err := o.out.Push(msg)
 			if err != nil {
@@ -59,4 +60,9 @@ func (o *output) listen(messages chan Message, errs chan error, wg *sync.WaitGro
 			}
 		}
 	}
+}
+
+func (o *output) close() error {
+	o.t.Done()
+	return o.out.Close()
 }
