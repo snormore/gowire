@@ -5,3 +5,4 @@ A Go package that acts as a wire or pipeline, sending messages from a defined in
 
 ![Build Status](https://travis-ci.org/snormore/gowire.png)
 
+[![Coverage Status](https://coveralls.io/repos/snormore/gowire/badge.png)](https://coveralls.io/r/snormore/gowire) [![Build Status](https://drone.io/github.com/snormore/gowire/status.png)](https://drone.io/github.com/snormore/gowire/latest)
