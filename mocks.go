@@ -55,6 +55,10 @@ type FakeOutputter struct {
 	Messages chan interface{}
 }
 
+func NewFakeOutputter() *FakeOutputter {
+	return &FakeOutputter{make(chan interface{})}
+}
+
 func (out *FakeOutputter) Start(t *tomb.Tomb) error {
 	return nil
 }
