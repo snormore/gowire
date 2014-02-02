@@ -7,7 +7,7 @@ import (
 
 type Outputter interface {
 	Start(t *tomb.Tomb) error
-	Push(msg *Message) error
+	Push(msg interface{}) error
 	Close() error
 }
 
@@ -22,7 +22,7 @@ func newOutput(out Outputter, in Inputter) *output {
 	return &o
 }
 
-func (o *output) start(numberOfListeners int, messages chan *Message, errs chan error) error {
+func (o *output) start(numberOfListeners int, messages chan interface{}, errs chan error) error {
 
 	err := o.out.Start(o.t)
 	if err != nil {
@@ -44,7 +44,7 @@ func (o *output) start(numberOfListeners int, messages chan *Message, errs chan 
 	return nil
 }
 
-func (o *output) listen(messages chan *Message, errs chan error, wg *sync.WaitGroup) error {
+func (o *output) listen(messages chan interface{}, errs chan error, wg *sync.WaitGroup) error {
 	defer wg.Done()
 
 	for {
