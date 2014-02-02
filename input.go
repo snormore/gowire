@@ -64,10 +64,10 @@ func (i *input) listen(messages chan interface{}, errs chan error, wg *sync.Wait
 			return i.t.Err()
 		case rawMsg := <-i.in.Listen():
 			msg, err := i.transformer.Transform(rawMsg)
-			if err == nil {
-				messages <- msg
-			} else {
+			if err != nil {
 				errs <- err
+			} else if msg != nil {
+				messages <- msg
 			}
 		}
 	}
