@@ -22,8 +22,7 @@ func (in *FakeInputter) PushAll(messages []string) error {
 }
 
 func (in *FakeInputter) Transform(rawMessage interface{}) (*Message, error) {
-	msg := Message{"undefined", rawMessage}
-	return &msg, nil
+	return NewMessage("undefined", rawMessage), nil
 }
 
 func (in *FakeInputter) Listen() chan interface{} {
