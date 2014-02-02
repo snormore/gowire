@@ -17,10 +17,10 @@ func New(config *WireConfig) *Wire {
 	return w
 }
 
-func (w *Wire) Start(in Inputter, out Outputter, errs chan error) error {
+func (w *Wire) Start(in Inputter, out Outputter, transformer Transformer, errs chan error) error {
 	messages := make(chan interface{}, w.Config.BufferSize)
 
-	w.in = newInput(in)
+	w.in = newInput(in, transformer)
 	if err := w.in.start(w.Config.NumberOfInputters, messages, errs); err != nil {
 		return err
 	}

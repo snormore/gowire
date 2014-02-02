@@ -56,7 +56,7 @@ func TestStartWithMocks(t *testing.T) {
 	out := &FakeOutputter{outMessages}
 
 	w := New(nil)
-	assert.NoError(t, w.Start(in, out, consumeAndCheckErrors(t)))
+	assert.NoError(t, w.Start(in, out, NewFakeTransformer(), consumeAndCheckErrors(t)))
 
 	go in.PushAll(sampleLogEntries)
 

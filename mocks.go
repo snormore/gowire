@@ -4,6 +4,16 @@ import (
 	"launchpad.net/tomb"
 )
 
+type FakeTransformer struct{}
+
+func NewFakeTransformer() *FakeTransformer {
+	return new(FakeTransformer)
+}
+
+func (t FakeTransformer) Transform(msg interface{}) (interface{}, error) {
+	return msg, nil
+}
+
 type FakeInputter struct {
 	Messages chan interface{}
 }
