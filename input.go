@@ -8,7 +8,6 @@ import (
 type Inputter interface {
 	Start(t *tomb.Tomb) error
 	Listen() chan interface{}
-	Transform(rawMessage interface{}) (interface{}, error)
 	FinalizeMessage(msg interface{}) error
 	Close() error
 }
