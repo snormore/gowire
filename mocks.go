@@ -21,9 +21,9 @@ func (in *FakeInputter) PushAll(messages []string) error {
 	return nil
 }
 
-func (in *FakeInputter) Transform(rawMessage interface{}) (Message, error) {
+func (in *FakeInputter) Transform(rawMessage interface{}) (*Message, error) {
 	msg := Message{"undefined", rawMessage}
-	return msg, nil
+	return &msg, nil
 }
 
 func (in *FakeInputter) Listen() chan interface{} {
@@ -34,7 +34,7 @@ func (in *FakeInputter) Start(t *tomb.Tomb) error {
 	return nil
 }
 
-func (in *FakeInputter) FinalizeMessage(msg Message) error {
+func (in *FakeInputter) FinalizeMessage(msg *Message) error {
 	return nil
 }
 
@@ -43,14 +43,14 @@ func (in *FakeInputter) Close() error {
 }
 
 type FakeOutputter struct {
-	Messages chan Message
+	Messages chan *Message
 }
 
 func (out *FakeOutputter) Start(t *tomb.Tomb) error {
 	return nil
 }
 
-func (out *FakeOutputter) Push(msg Message) error {
+func (out *FakeOutputter) Push(msg *Message) error {
 	out.Messages <- msg
 	return nil
 }

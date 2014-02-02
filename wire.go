@@ -18,7 +18,7 @@ func New(config *WireConfig) *Wire {
 }
 
 func (w *Wire) Start(in Inputter, out Outputter, errs chan error) error {
-	messages := make(chan Message, w.Config.BufferSize)
+	messages := make(chan *Message, w.Config.BufferSize)
 
 	w.in = newInput(in)
 	if err := w.in.start(w.Config.NumberOfInputters, messages, errs); err != nil {

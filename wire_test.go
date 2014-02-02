@@ -52,7 +52,7 @@ func TestStartWithMocks(t *testing.T) {
 	in := NewFakeInputter()
 	sampleLogEntries := sampleEventLogEntries()
 
-	outMessages := make(chan Message, 1024)
+	outMessages := make(chan *Message, 1024)
 	out := &FakeOutputter{outMessages}
 
 	w := New(nil)

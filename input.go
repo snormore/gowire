@@ -8,8 +8,8 @@ import (
 type Inputter interface {
 	Start(t *tomb.Tomb) error
 	Listen() chan interface{}
-	Transform(rawMessage interface{}) (Message, error)
-	FinalizeMessage(msg Message) error
+	Transform(rawMessage interface{}) (*Message, error)
+	FinalizeMessage(msg *Message) error
 	Close() error
 }
 
@@ -25,7 +25,7 @@ func newInput(in Inputter) *input {
 	return &i
 }
 
-func (i *input) start(numberOfListeners int, messages chan Message, errs chan error) error {
+func (i *input) start(numberOfListeners int, messages chan *Message, errs chan error) error {
 
 	err := i.in.Start(i.t)
 	if err != nil {
@@ -47,7 +47,7 @@ func (i *input) start(numberOfListeners int, messages chan Message, errs chan er
 	return nil
 }
 
-func (i *input) listen(messages chan Message, errs chan error, wg *sync.WaitGroup) error {
+func (i *input) listen(messages chan *Message, errs chan error, wg *sync.WaitGroup) error {
 	defer func() {
 		wg.Done()
 		select {
