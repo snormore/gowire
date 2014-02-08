@@ -4,10 +4,10 @@ type Wire struct {
 	in  *input
 	out *output
 
-	Config *WireConfig
+	Config *Config
 }
 
-func New(config *WireConfig) *Wire {
+func New(config *Config) *Wire {
 	w := new(Wire)
 	if config == nil {
 		w.Config = &DefaultConfig
