@@ -73,6 +73,10 @@ func (i *input) listen(messages chan interface{}, errs chan error, wg *sync.Wait
 }
 
 func (i *input) close() error {
-	i.t.Done()
+	select {
+	case <-i.t.Dying():
+	default:
+		i.t.Done()
+	}
 	return i.in.Close()
 }

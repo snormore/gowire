@@ -63,6 +63,10 @@ func (o *output) listen(messages chan interface{}, errs chan error, wg *sync.Wai
 }
 
 func (o *output) close() error {
-	o.t.Done()
+	select {
+	case <-o.t.Dying():
+	default:
+		o.t.Done()
+	}
 	return o.out.Close()
 }
