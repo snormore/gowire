@@ -11,7 +11,7 @@ func NewFakeTransformer() *FakeTransformer {
 }
 
 func (t FakeTransformer) Transform(msg interface{}) (interface{}, error) {
-	return msg, nil
+	return []interface{}{msg, msg}, nil
 }
 
 type FakeInputter struct {
@@ -29,10 +29,6 @@ func (in *FakeInputter) PushAll(messages []string) error {
 		in.Messages <- msg
 	}
 	return nil
-}
-
-func (in *FakeInputter) Transform(rawMessage interface{}) (interface{}, error) {
-	return rawMessage, nil
 }
 
 func (in *FakeInputter) Listen() chan interface{} {
