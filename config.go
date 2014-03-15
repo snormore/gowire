@@ -23,6 +23,12 @@ func NewConfig(rawConfig map[string]interface{}) (*Config, error) {
 		config.NumberOfInputters = rawConfig["number_of_inputters"].(int)
 	}
 
+	if _, ok := rawConfig["number_of_transformers"]; !ok {
+		config.NumberOfTransformers = DefaultConfig.NumberOfTransformers
+	} else {
+		config.NumberOfTransformers = rawConfig["number_of_transformers"].(int)
+	}
+
 	if _, ok := rawConfig["number_of_outputters"]; !ok {
 		config.NumberOfOutputters = DefaultConfig.NumberOfOutputters
 	} else {
