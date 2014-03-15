@@ -13,15 +13,14 @@ type Inputter interface {
 }
 
 type input struct {
-	in          Inputter
-	transformer Transformer
-	t           *tomb.Tomb
+	in Inputter
+	t  *tomb.Tomb
 }
 
 var adapter Inputter
 
-func newInput(in Inputter, transformer Transformer) *input {
-	i := input{in, transformer, new(tomb.Tomb)}
+func newInput(in Inputter) *input {
+	i := input{in, new(tomb.Tomb)}
 	return &i
 }
 
@@ -62,12 +61,7 @@ func (i *input) listen(messages chan interface{}, errs chan error, wg *sync.Wait
 		case <-i.t.Dying():
 			return i.t.Err()
 		case rawMsg := <-i.in.Listen():
-			msg, err := i.transformer.Transform(rawMsg)
-			if err != nil {
-				errs <- err
-			} else if msg != nil {
-				messages <- msg
-			}
+			messages <- rawMsg
 		}
 	}
 }

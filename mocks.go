@@ -10,8 +10,16 @@ func NewFakeTransformer() *FakeTransformer {
 	return new(FakeTransformer)
 }
 
-func (t FakeTransformer) Transform(msg interface{}) (interface{}, error) {
+func (tr FakeTransformer) Transform(msg interface{}) (interface{}, error) {
 	return []interface{}{msg, msg}, nil
+}
+
+func (tr *FakeTransformer) Start(t *tomb.Tomb) error {
+	return nil
+}
+
+func (tr *FakeTransformer) Close() error {
+	return nil
 }
 
 type FakeInputter struct {
