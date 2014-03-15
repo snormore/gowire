@@ -15,6 +15,15 @@ func New(config *Config) *Wire {
 	} else {
 		w.Config = config
 	}
+	if w.Config.NumberOfInputters == 0 {
+		w.Config.NumberOfInputters = 1
+	}
+	if w.Config.NumberOfTransformers == 0 {
+		w.Config.NumberOfTransformers = 1
+	}
+	if w.Config.NumberOfOutputters == 0 {
+		w.Config.NumberOfOutputters = 1
+	}
 	return w
 }
 
